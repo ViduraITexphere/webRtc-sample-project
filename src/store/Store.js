@@ -1,6 +1,6 @@
 // import {createStore} from 'redux';
 // import mainReducer from './Reducer';
-// import { composeWithDevTools } from 'redux-devtools-extension';
+import { composeWithDevTools } from 'redux-devtools-extension';
 
 // const store = createStore(mainReducer, composeWithDevTools());
 
@@ -8,10 +8,15 @@
 
 // reducers/index.js
 
-import {createStore} from 'redux';
+
+
+import {applyMiddleware, createStore} from 'redux';
 import mainReducer from './Reducer';
 
-const store = createStore(mainReducer);
+window.devToolsExtension && window.devToolsExtension()
+
+const store = createStore(mainReducer, composeWithDevTools(applyMiddleware()));
+
 export default store;
 
 

@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./Login.css";
 import { useDispatch } from "react-redux";
 import { saveUser } from "../../store/actions/AuthAction";
 import { useNavigate } from 'react-router-dom';
+import { connectWithWebSocket, registerNewUser } from "../../utils/wssConnection/wssConnection";
 
 
 function Login() {
@@ -15,10 +16,15 @@ function Login() {
   };
 
   const handleSubmit = () => {
+    registerNewUser(username);
     console.log("handleSubmit: ", username);
     dispatch(saveUser(username));
     navigate('/room');
   };
+
+  useEffect(() => {
+    connectWithWebSocket();
+    }, []);
 
   return (
 

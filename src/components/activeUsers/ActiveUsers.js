@@ -1,31 +1,16 @@
 import React from 'react'
+import { connect } from 'react-redux';
 
-function ActiveUsers() {
+const ActiveUsers = ({activeUsers})=> {
+    console.log("active user",activeUsers);
 
-    const users = [
-        {
-            cocket_id: "123",
-            username: "user1"
-        },
-        {
-            cocket_id: "456",
-            username: "user2"
-        },
-        {
-            cocket_id: "789",
-            username: "user3"
-        },
-        {
-            cocket_id: "101",
-            username: "user4"
-        }
-    ];
+    
   return (
     <div>
         <h4>Active Users</h4>
-        {users.map((user) => {
+        {activeUsers.map((user) => {
             return (
-                <div key={user.cocket_id}>
+                <div key={user.socketId}>
                     <h5>{user.username}</h5>
                 </div>
             )
@@ -33,4 +18,8 @@ function ActiveUsers() {
     </div>
     )
 }
-export default ActiveUsers
+
+    const mapStateToProps = ({auth}) => ({
+        ...auth
+    });
+export default connect(mapStateToProps) (ActiveUsers);

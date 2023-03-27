@@ -9,29 +9,47 @@ const http = require('http');
 const server = http.createServer(app);
 const io = require('socket.io')(server, {
     cors: {
-        origin: 'http://localhost:3000',
+        origin: '*',
         methods : ['GET', 'POST']
     }
 })
 
+let peers = [];
+
+const broadcastEventTypes = {
+    ACTIVE_USERS: "ACTIVE_USERS",
+    GROUP_CALL_ROOMS : "GROUP_CALL_ROOMS"
+}
 
 //create socket connection
 io.on("connection", (socket) => {
     console.log('made socket connection', socket.id);
-    socket.emit('me', socket.id);
+    socket.emit("connection", null);
 
-    socket.on('disconnect', () => {
-        socket.broadcast.emit('callEnded');
-    })
+    socket.on("register_new_user", (data) => {
+        peers.push ({
+            username : data.username,
+            socketId : data.socketId
+        });
+        console.log ("register_new_user: ");
+        console.log("peers: ", peers);
 
-    socket.on('callUser', (data) => {
-        io.to(data.userToCall).emit('callUser', { signal: data.signalData, from: data.from, name: data.name });
-    })
+        //send active users to all users
+        io.sockets.emit("broadcast", {
+            event: broadcastEventTypes.ACTIVE_USERS,
+            activeUsers : peers
+        });
 
-    socket.on('answerCall', (data) => { 
-        io.to(data.to).emit('callAccepted', data.signal);
-    })
-})
+        socket.on ("disconnect", () => {
+            console.log ("disconnect: ", socket.id);
+            peers = peers.filter((peer) => peer.socketId !== socket.id);
+            io.sockets.emit("broadcast", {
+                event: broadcastEventTypes.ACTIVE_USERS,
+                activeUsers : peers
+            });
+        });
+    });
+});
 
 //8-app middleware
 app.use(bodyParser.json());
