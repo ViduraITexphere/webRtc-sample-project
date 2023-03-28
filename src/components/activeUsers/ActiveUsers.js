@@ -1,25 +1,29 @@
-import React from 'react'
-import { connect } from 'react-redux';
+import React from "react";
+import { connect } from "react-redux";
+import ActiveUsersListItem from "./ActiveUserListItems";
+import "./ActiveUsers.css";
 
-const ActiveUsers = ({activeUsers})=> {
-    console.log("active user",activeUsers);
+const ActiveUsers = ({ activeUsers }) => {
+  console.log("active user", activeUsers);
 
-    
   return (
     <div>
-        <h4>Active Users</h4>
-        {activeUsers.map((user) => {
+      <div className="active-user-list-container">
+        <ul className="active-user-list">
+          {activeUsers.map((user) => {
             return (
-                <div key={user.socketId}>
-                    <h5>{user.username}</h5>
-                </div>
-            )
-        })}
+              <li className="active-user-list-item">
+                <ActiveUsersListItem activeUser={user} key={user.socketId} />
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </div>
-    )
-}
+  );
+};
 
-    const mapStateToProps = ({auth}) => ({
-        ...auth
-    });
-export default connect(mapStateToProps) (ActiveUsers);
+const mapStateToProps = ({ auth }) => ({
+  ...auth,
+});
+export default connect(mapStateToProps)(ActiveUsers);

@@ -1,26 +1,36 @@
-import { callStates } from "../actions/CallAction";
+import * as callActions from "../actions/CallAction";
 
-const initialState = {
+const initState = {
   localStream: null,
-  callState: callStates.CALL_UNVAILABLE,
+  callState: callActions.callStates.CALL_UNAVAILABLE,
+  callingDialogVisible: false,
+  callerUsername: "",
 };
 
-const callReducer = (state = initialState, action) => {
+const reducer = (state = initState, action) => {
   switch (action.type) {
-    case "CALL_SET_LOCAL_STREAM":
+    case callActions.CALL_SET_LOCAL_STREAM:
       return {
         ...state,
-        localStream: action.payload.localStream,
+        localStream: action.localStream,
       };
-    case "CALL_SET_CALL_STATE":
+    case callActions.CALL_SET_CALL_STATE:
       return {
         ...state,
         callState: action.callState,
       };
-
+    case callActions.CALL_SET_CALLING_DIALOG_VISIBLE:
+      return {
+        ...state,
+        callingDialogVisible: action.visible,
+      };
+    case callActions.CALL_SET_CALLER_USERNAME:
+      return {
+        ...state,
+        callerUsername: action.callerUsername,
+      };
     default:
       return state;
   }
 };
-
-export default callReducer;
+export default reducer;

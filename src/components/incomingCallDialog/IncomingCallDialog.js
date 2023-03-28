@@ -1,7 +1,7 @@
 import React from "react";
 import "./IncomingCallDialog.css";
 
-function IncomingCallDialog() {
+function IncomingCallDialog({ callerUsername }) {
   const handleAcceptedButtonPressed = () => {
     console.log("accepted");
   };
@@ -12,7 +12,9 @@ function IncomingCallDialog() {
 
   return (
     <div className="direct_call_dialog">
-      <span className="direct_call_dialog_caller_name">Incoming Call</span>
+      <span className="direct_call_dialog_caller_name">
+        Incoming Call from {callerUsername}
+      </span>
       <div className="direct_call_dialog_button_container">
         <button
           className="direct_call_dialog_accept_button"
