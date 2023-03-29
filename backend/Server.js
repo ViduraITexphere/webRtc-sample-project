@@ -58,6 +58,38 @@ io.on("connection", (socket) => {
         callerSocketId: socket.id,
       });
     });
+
+    //listen for pre answer
+    socket.on("pre_offer_answer", (data) => {
+      console.log("pre_offer_answer: ", data);
+      io.to(data.callerSocketId).emit("pre_offer_answer", {
+        answer: data.answer,
+      });
+    });
+
+    //listen for webRTC offer
+    socket.on("webRTC_offer", (data) => {
+      console.log("webRTC_offer: ", data);
+      io.to(data.calleeSocketId).emit("webRTC_offer", {
+        offer: data.offer,
+      });
+    });
+
+    //listen for webRTC answer
+    socket.on("webRTC_answer", (data) => {
+      console.log("webRTC_answer: ", data);
+      io.to(data.callerSocketId).emit("webRTC_answer", {
+        answer: data.answer,
+      });
+    });
+
+    //listen for new ice candidate
+    socket.on("webRTC_candidate", (data) => {
+      console.log("new_ice_candidate: ", data);
+      io.to(data.connectedUserSocketId).emit("webRTC_candidate", {
+        candidate: data.candidate,
+      });
+    });
   });
 });
 

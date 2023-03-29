@@ -29,6 +29,26 @@ export const connectWithWebSocket = () => {
   socket.on("pre_offer", (data) => {
     webRTChandler.handlePreOffer(data);
   });
+
+  //listen for pre answer
+  socket.on("pre_offer_answer", (data) => {
+    webRTChandler.handlePreOfferAnswer(data);
+  });
+
+  //listen for webRTC offer
+  socket.on("webRTC_offer", (data) => {
+    webRTChandler.handleOffer(data);
+  });
+
+  //listen for webRTC answer
+  socket.on("webRTC_answer", (data) => {
+    webRTChandler.handleAnswer(data);
+  });
+
+  //listen for webRTC candidate
+  socket.on("webRTC_candidate", (data) => {
+    webRTChandler.handleCandidate(data);
+  });
 };
 
 export const registerNewUser = (username) => {
@@ -56,4 +76,22 @@ const handleBroadcastEventData = (data) => {
 // emmit pre_offer event to signaling server
 export const sendPreOffer = (data) => {
   socket.emit("pre_offer", data);
+};
+
+export const sendPreOfferAnswer = (data) => {
+  socket.emit("pre_offer_answer", data);
+};
+
+// send webRTC offer to other user
+export const sendWebRTCOffer = (data) => {
+  socket.emit("webRTC_offer", data);
+};
+
+// send webRTC answer to other user
+export const sendWebRTCAnswer = (data) => {
+  socket.emit("webRTC_answer", data);
+};
+
+export const sendWebRTCCandidate = (data) => {
+  socket.emit("webRTC_candidate", data);
 };
