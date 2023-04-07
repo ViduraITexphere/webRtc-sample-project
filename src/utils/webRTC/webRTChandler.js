@@ -7,8 +7,11 @@ import {
   setLocalStream,
   setCallingDialogVisible,
   setRemoteStream,
+  setScreenSharingActive,
+  resetCallDataState,
 } from "../../store/actions/CallAction";
 import * as wss from "../wssConnection/wssConnection";
+import { async } from "q";
 
 // create pre offer answers
 const preOfferAnswers = {
@@ -18,9 +21,12 @@ const preOfferAnswers = {
 };
 
 //default constraints for video and audio
-const defaultConstraints = {
+const defaultConstrains = {
+  video: {
+    width: 1280,
+    height: 720,
+  },
   audio: true,
-  video: true,
 };
 
 const configuration = {
@@ -40,15 +46,17 @@ let peerConnection;
 
 export const getLocalStream = () => {
   navigator.mediaDevices
-    .getUserMedia(defaultConstraints)
+    .getUserMedia(defaultConstrains)
     .then((stream) => {
       store.dispatch(setLocalStream(stream));
-      //ask signaling server to whether like to call or not
       store.dispatch(setCallState(callStates.CALL_AVAILABLE));
       createPeerConnection();
     })
-    .catch((error) => {
-      console.log("Error getting local stream: ", error);
+    .catch((err) => {
+      console.log(
+        "error occured when trying to get an access to get local stream"
+      );
+      console.log(err);
     });
 };
 
@@ -206,6 +214,66 @@ export const checkIfCallIsPossible = () => {
   }
 };
 
+// screen share
+let screenShareStream;
+
+export const switchForScreenSharingStream = async () => {
+  if (!store.getState().call.screenSharingActive) {
+    try {
+      screenShareStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+      });
+      store.dispatch(setScreenSharingActive(true));
+      const senders = peerConnection.getSenders();
+      const sender = senders.find(
+        (sender) =>
+          sender.track.kind === screenShareStream.getVideoTracks()[0].kind
+      );
+      sender.replaceTrack(screenShareStream.getVideoTracks()[0]);
+    } catch (error) {
+      console.log("Error switching for screen sharing stream: ", error);
+    }
+  } else {
+    const localStream = store.getState().call.localStream;
+    const senders = peerConnection.getSenders();
+    const sender = senders.find(
+      (sender) => sender.track.kind === localStream.getVideoTracks()[0].kind
+    );
+    sender.replaceTrack(localStream.getVideoTracks()[0]);
+    store.dispatch(setScreenSharingActive(false));
+    screenShareStream.getTracks().forEach((track) => track.stop());
+  }
+};
+
+// hang up
+export const handleUserHangedUp = () => {
+  resetCallDataAfterHangUp();
+};
+
+export const hangUp = () => {
+  wss.sendUserHangedUp({
+    connectedUserSocketId: connectedUserSocketId,
+  });
+  resetCallDataAfterHangUp();
+};
+
+const resetCallDataAfterHangUp = () => {
+  if (store.getState().call.screenSharingActive) {
+    screenShareStream.getTracks().forEach((track) => {
+      track.stop();
+    });
+  }
+  store.dispatch(resetCallDataState());
+  peerConnection.close();
+  peerConnection = null;
+  createPeerConnection();
+  resetCallData();
+
+  const localStream = store.getState().call.localStream;
+
+  localStream.getVideoTracks()[0].enabled = true;
+  localStream.getAudioTracks()[0].enabled = true;
+};
 export const resetCallData = () => {
   connectedUserSocketId = null;
   store.dispatch(setCallState(callStates.CALL_AVAILABLE));

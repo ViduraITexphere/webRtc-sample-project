@@ -7,6 +7,20 @@ const app = express();
 const RoomRoutes = require("./routes/CreateRoom");
 const http = require("http");
 const server = http.createServer(app);
+const { ExpressPeerServer } = require("peer");
+const GroupCallHandler = require("./GroupCallHandler");
+const { v4: uuidV4 } = require("uuid");
+
+////////////////// create a peer server////////////////
+const peerServer = ExpressPeerServer(server, {
+  debug: true,
+});
+//////////////////////////////////////////////////////
+app.use("/peerjs", peerServer); //mount a PeerJS server middleware onto an Express application.
+
+////////////////////Listner for the peer server/////////////////
+GroupCallHandler.createPeerServerListners(peerServer);
+
 const io = require("socket.io")(server, {
   cors: {
     origin: "*",
@@ -15,6 +29,7 @@ const io = require("socket.io")(server, {
 });
 
 let peers = [];
+let groupCallRooms = [];
 
 const broadcastEventTypes = {
   ACTIVE_USERS: "ACTIVE_USERS",
@@ -39,6 +54,11 @@ io.on("connection", (socket) => {
       event: broadcastEventTypes.ACTIVE_USERS,
       activeUsers: peers,
     });
+    //send group call rooms to all users
+    io.sockets.emit("broadcast", {
+      event: broadcastEventTypes.GROUP_CALL_ROOMS,
+      groupCallRooms,
+    });
 
     socket.on("disconnect", () => {
       console.log("disconnect: ", socket.id);
@@ -46,6 +66,14 @@ io.on("connection", (socket) => {
       io.sockets.emit("broadcast", {
         event: broadcastEventTypes.ACTIVE_USERS,
         activeUsers: peers,
+      });
+
+      groupCallRooms = groupCallRooms.filter(
+        (room) => room.socketId !== socket.id
+      );
+      io.sockets.emit("broadcast", {
+        event: broadcastEventTypes.GROUP_CALL_ROOMS,
+        groupCallRooms,
       });
     });
 
@@ -90,9 +118,56 @@ io.on("connection", (socket) => {
         candidate: data.candidate,
       });
     });
+
+    //listen for hang up
+    socket.on("user_hanged_up", (data) => {
+      console.log("user_hanged_up: ", data);
+      io.to(data.connectedUserSocketId).emit("user_hanged_up");
+    });
+  });
+
+  // listeners related with group call
+  socket.on("group_call_register", (data) => {
+    const roomId = uuidV4();
+    socket.join(roomId);
+
+    const newGroupCallRoom = {
+      peerId: data.peerId,
+      hostName: data.username,
+      socketId: socket.id,
+      roomId: roomId,
+    };
+    groupCallRooms.push(newGroupCallRoom);
+    io.sockets.emit("broadcast", {
+      event: broadcastEventTypes.GROUP_CALL_ROOMS,
+      groupCallRooms,
+    });
+  });
+  socket.on("group_call_join_request", (data) => {
+    io.to(data.roomId).emit("group_call_join_request", {
+      peerId: data.peerId,
+      streamId: data.streamId,
+    });
+    socket.join(data.roomId);
+  });
+
+  socket.on("group_call_user_left", (data) => {
+    socket.leave(data.roomId);
+    io.to(data.roomId).emit("group_call_user_left", {
+      streamId: data.streamId,
+    });
+  });
+
+  socket.on("group_call_closed_by_host", (data) => {
+    groupCallRooms = groupCallRooms.filter(
+      (room) => room.peerId !== data.peerId
+    );
+    io.sockets.emit("broadcast", {
+      event: broadcastEventTypes.GROUP_CALL_ROOMS,
+      groupCallRooms,
+    });
   });
 });
-
 //8-app middleware
 app.use(bodyParser.json());
 app.use(cors());

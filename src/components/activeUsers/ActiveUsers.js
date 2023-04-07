@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import ActiveUsersListItem from "./ActiveUserListItems";
 import "./ActiveUsers.css";
 
-const ActiveUsers = ({ activeUsers }) => {
+const ActiveUsers = ({ activeUsers, callState }) => {
   console.log("active user", activeUsers);
 
   return (
@@ -13,7 +13,11 @@ const ActiveUsers = ({ activeUsers }) => {
           {activeUsers.map((user) => {
             return (
               <li className="active-user-list-item">
-                <ActiveUsersListItem activeUser={user} key={user.socketId} />
+                <ActiveUsersListItem
+                  activeUser={user}
+                  callState={callState}
+                  key={user.socketId}
+                />
               </li>
             );
           })}
@@ -23,7 +27,8 @@ const ActiveUsers = ({ activeUsers }) => {
   );
 };
 
-const mapStateToProps = ({ auth }) => ({
+const mapStateToProps = ({ auth, call }) => ({
   ...auth,
+  ...call,
 });
 export default connect(mapStateToProps)(ActiveUsers);

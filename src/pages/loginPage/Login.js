@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 import "./Login.css";
 import { useDispatch } from "react-redux";
 import { saveUser } from "../../store/actions/AuthAction";
-import { useNavigate } from 'react-router-dom';
-import { connectWithWebSocket, registerNewUser } from "../../utils/wssConnection/wssConnection";
-
+import { useNavigate } from "react-router-dom";
+import {
+  connectWithWebSocket,
+  registerNewUser,
+} from "../../utils/wssConnection/wssConnection";
 
 function Login() {
   const dispatch = useDispatch();
@@ -19,15 +21,14 @@ function Login() {
     registerNewUser(username);
     console.log("handleSubmit: ", username);
     dispatch(saveUser(username));
-    navigate('/room');
+    navigate("/room");
   };
 
   useEffect(() => {
     connectWithWebSocket();
-    }, []);
+  }, []);
 
   return (
-
     <div className="login-form">
       <h2>Login</h2>
       <div className="form-group">
@@ -40,7 +41,9 @@ function Login() {
           placeholder="Enter your username"
         />
       </div>
-      <button type="submit" className="btn" onClick={() => handleSubmit()}>Login</button>
+      <button type="submit" className="btn" onClick={() => handleSubmit()}>
+        Login
+      </button>
     </div>
   );
 }

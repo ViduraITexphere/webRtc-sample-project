@@ -2,6 +2,7 @@ import sockeClient from "socket.io-client";
 import store from "../../store/Store";
 import * as AuthActions from "../../store/actions/AuthAction";
 import * as webRTChandler from "../webRTC/webRTChandler";
+import * as webRTCGroupCallHandler from "../webRTC/webRTCGroupCallHandler";
 
 const SERVER = "http://localhost:5000";
 
@@ -49,6 +50,20 @@ export const connectWithWebSocket = () => {
   socket.on("webRTC_candidate", (data) => {
     webRTChandler.handleCandidate(data);
   });
+
+  //listen for user hanged up
+  socket.on("user_hanged_up", () => {
+    webRTChandler.handleUserHangedUp();
+  });
+
+  //listeners related with group call
+  socket.on("group_call_join_request", (data) => {
+    webRTCGroupCallHandler.connectToNewUser(data);
+  });
+
+  socket.on("group_call_user_left", (data) => {
+    webRTCGroupCallHandler.removeInactiveStream(data);
+  });
 };
 
 export const registerNewUser = (username) => {
@@ -66,6 +81,24 @@ const handleBroadcastEventData = (data) => {
         (activeUsers) => activeUsers.socketId !== socket.id
       );
       store.dispatch(AuthActions.setActiveUsers(activeUsers));
+      break;
+    case broadcastEventTypes.GROUP_CALL_ROOMS:
+      const groupCallRooms = data.groupCallRooms.filter(
+        (room) => room.socketId !== socket.id
+      );
+      const activeGroupCallRoomId =
+        webRTCGroupCallHandler.checkActiveGroupCall();
+      if (activeGroupCallRoomId) {
+        const room = groupCallRooms.find(
+          (room) => room.roomId === activeGroupCallRoomId
+        );
+
+        if (!room) {
+          webRTCGroupCallHandler.clearGroupData();
+        }
+      }
+
+      store.dispatch(AuthActions.setGroupCalls(groupCallRooms));
       break;
     default:
       break;
@@ -94,4 +127,28 @@ export const sendWebRTCAnswer = (data) => {
 
 export const sendWebRTCCandidate = (data) => {
   socket.emit("webRTC_candidate", data);
+};
+
+// send user hanged up to other user
+export const sendUserHangedUp = (data) => {
+  socket.emit("user_hanged_up", data);
+};
+
+//emit group call room event to signaling server
+export const registerGroupCall = (data) => {
+  socket.emit("group_call_register", data);
+};
+
+// emit group call join request to signaling server
+export const userWantsToJoinGroupCall = (data) => {
+  socket.emit("group_call_join_request", data);
+};
+// emit group call leave request to signaling server
+export const userLeftGroupCall = (data) => {
+  socket.emit("group_call_user_left", data);
+};
+
+// emit group call close request to signaling server
+export const groupCallClosedByHost = (data) => {
+  socket.emit("group_call_closed_by_host", data);
 };

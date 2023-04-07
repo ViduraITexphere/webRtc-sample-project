@@ -1,0 +1,18 @@
+.group_calls_list_item {
+  display: flex;
+  position: fixed;
+  bottom: 30%;
+  left: 3%;
+  background-color: rgb(250, 211, 159);
+  width: 200px;
+  height: 160px;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.group_calls_list_item:hover {
+  opacity: 0.5;
+}

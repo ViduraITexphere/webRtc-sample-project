@@ -1,10 +1,17 @@
 import { connect } from "react-redux";
-import { callStates, setCallRejected } from "../../store/actions/CallAction";
+import {
+  callStates,
+  setCallRejected,
+  setLocalCameraEnabled,
+  setLocalMicrophoneEnabled,
+} from "../../store/actions/CallAction";
+import "./DirectCall.css";
 import CallingDialog from "../callingDialog/CallingDialog";
 import CallRejectedDialog from "../callRejectedDialog/CallRejectedDialog";
 import IncomingCallDialog from "../incomingCallDialog/IncomingCallDialog";
 import LocalVideoView from "../localVideoView/LocalVideoView";
 import RemoteVideoView from "../remoteVideoView/RemoteVideoView";
+import ConversationButtons from "../conversationButtons/ConversationButtons";
 const DirectCall = (props) => {
   console.log("DirectCall: ", props);
   const {
@@ -19,9 +26,11 @@ const DirectCall = (props) => {
 
   console.log("callingDialogVisible: ", callingDialogVisible);
   return (
-    <div>
+    <>
       <LocalVideoView localStream={localStream} />
-      {remoteStream && <RemoteVideoView remoteStream={remoteStream} />}
+      {remoteStream && callState === callStates.CALL_IN_PROGRESS && (
+        <RemoteVideoView remoteStream={remoteStream} />
+      )}
       {callRejected.rejected && (
         <CallRejectedDialog
           reason={callRejected.reason}
@@ -32,7 +41,10 @@ const DirectCall = (props) => {
         <IncomingCallDialog callerUsername={callerUsername} />
       )}
       {callingDialogVisible && <CallingDialog />}
-    </div>
+      {remoteStream && callState === callStates.CALL_IN_PROGRESS && (
+        <ConversationButtons {...props} />
+      )}
+    </>
   );
 };
 
@@ -46,6 +58,10 @@ function mapDispatchToProps(dispatch) {
   return {
     hideCallRejectedDialog: (callRejectedDetails) =>
       dispatch(setCallRejected(callRejectedDetails)),
+    setCameraEnabled: (enabled) => dispatch(setLocalCameraEnabled(enabled)),
+    setMicrophoneEnabled: (enabled) =>
+      dispatch(setLocalMicrophoneEnabled(enabled)),
   };
 }
+
 export default connect(mapStoreStateToProps, mapDispatchToProps)(DirectCall);

@@ -2,18 +2,18 @@ import React, { useRef, useEffect } from "react";
 
 const styles = {
   videoContainer: {
-    width: "150px",
-    height: "150px",
+    width: "220px",
+    height: "160px",
     position: "absolute",
-    top: "5%",
-    right: "20%",
-    border: "1px solid black",
-    borderRadius: "5px",
+    top: "2%",
+    left: "2%",
+    border: "1px solid blue",
     margin: "5px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     overflow: "hidden",
+    zIndex: "2",
   },
   videoElement: {
     width: "100%",

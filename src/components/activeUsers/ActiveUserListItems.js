@@ -1,12 +1,15 @@
 import React from "react";
+import { callStates } from "../../store/actions/CallAction";
 import { callToOtherUser } from "../../utils/webRTC/webRTChandler";
 
 const ActiveUsersListItem = (props) => {
-  const { activeUser } = props;
+  const { activeUser, callState } = props;
   console.log("activeUser: ", activeUser);
 
   const handleListItemPressed = () => {
-    callToOtherUser(activeUser);
+    if (callState === callStates.CALL_AVAILABLE) {
+      callToOtherUser(activeUser);
+    }
   };
 
   console.log(activeUser);

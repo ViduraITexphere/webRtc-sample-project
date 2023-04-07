@@ -1,18 +1,21 @@
 import React, { useRef, useEffect } from "react";
+import "./RemoteVideoView.css";
 
 const styles = {
   videoContainer: {
     width: "100%",
-    height: "100%",
+    height: "100vh",
+    position: "absolute",
+    zIndex: "0",
   },
   videoElement: {
     width: "100%",
-    height: "100%",
+    height: window.innerHeight - 5,
     objectFit: "cover",
   },
 };
 
-function LocalVideoView(props) {
+function RemoteVideoView(props) {
   const { remoteStream } = props;
   const remoteVideoRef = useRef();
 
@@ -38,4 +41,4 @@ function LocalVideoView(props) {
   );
 }
 
-export default LocalVideoView;
+export default RemoteVideoView;
