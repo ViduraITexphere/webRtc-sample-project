@@ -12,6 +12,7 @@ import {
 } from "../../store/actions/CallAction";
 import * as wss from "../wssConnection/wssConnection";
 import { async } from "q";
+import { getTurnServers } from "./TURN";
 
 // create pre offer answers
 const preOfferAnswers = {
@@ -27,15 +28,6 @@ const defaultConstrains = {
     height: 720,
   },
   audio: true,
-};
-
-const configuration = {
-  // get our internet provider's public IP address to be used by STUN server
-  iceServers: [
-    {
-      urls: "stun:stun.l.google.com:19302",
-    },
-  ],
 };
 
 //getUserMedia allows web applications to access media devices
@@ -79,6 +71,12 @@ export const callToOtherUser = (calleeDetails) => {
 
 //////////////////////create peer connection////////////////////////
 const createPeerConnection = () => {
+  const turnServers = getTurnServers();
+  const configuration = {
+    // get our internet provider's public IP address to be used by STUN server
+    iceServers: [...turnServers, { urls: "stun:stun.l.google.com:19302" }],
+    iceTransportPolicy: "relay",
+  };
   peerConnection = new RTCPeerConnection(configuration);
 
   const localStream = store.getState().call.localStream;

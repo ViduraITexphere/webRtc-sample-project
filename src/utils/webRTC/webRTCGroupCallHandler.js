@@ -7,6 +7,7 @@ import {
   clearGroupCallData,
 } from "../../store/actions/CallAction";
 import { callStates } from "../../store/actions/CallAction";
+import { getTurnServers } from "./TURN";
 let myPeer;
 let myPeerId;
 let groupCallRoomId;
@@ -18,6 +19,12 @@ export const connectWithMyPeer = () => {
     path: "/peerjs",
     host: "/",
     port: "5000",
+    config: {
+      iceServers: [
+        ...getTurnServers(),
+        { urls: "stun:stun.l.google.com:19302" },
+      ],
+    },
   });
   myPeer.on("open", (id) => {
     console.log("successfull connected with peer server" + id);

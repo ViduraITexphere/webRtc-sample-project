@@ -7,11 +7,22 @@ import * as webRTCGroupCallHandler from "../../utils/webRTC/webRTCGroupCallHandl
 import GroupCallRoomsList from "../../components/groupCallRoomsList/GroupCallRoomsList";
 import GroupCall from "../../components/groupCall/GroupCall";
 import { connect } from "react-redux";
+import axios from "axios";
+import { setTurnServers } from "../../utils/webRTC/TURN";
 
 function Room() {
   useEffect(() => {
-    webRTChandler.getLocalStream();
-    webRTCGroupCallHandler.connectWithMyPeer();
+    axios
+      .get("http://localhost:5000/api/get-turn-credentials")
+      .then((responseData) => {
+        console.log("TURN-server-data", responseData.data);
+        setTurnServers(responseData.data.token.iceServers);
+        webRTChandler.getLocalStream();
+        webRTCGroupCallHandler.connectWithMyPeer();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }, []);
 
   return (

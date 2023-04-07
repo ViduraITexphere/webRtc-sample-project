@@ -1,3 +1,4 @@
+const twilio = require("twilio");
 const express = require("express");
 const mongoose = require("mongoose");
 //7-Import body-parser library
@@ -11,6 +12,30 @@ const { ExpressPeerServer } = require("peer");
 const GroupCallHandler = require("./GroupCallHandler");
 const { v4: uuidV4 } = require("uuid");
 
+//5-Database connection
+const DB_URL =
+  "mongodb+srv://viduraitexphere:mypass123@web-rtc-app.10ydvu6.mongodb.net/?retryWrites=true&w=majority";
+
+const PORT = process.env.PORT || 5000;
+
+//8-app middleware
+app.use(bodyParser.json());
+app.use(cors());
+
+app.get("/", (req, res) => {
+  res.send({ api: "video-talker-api" });
+});
+
+app.get("/api/get-turn-credentials", (req, res) => {
+  const accountSid = "AC7078ad7f34409925308da30b7af74346";
+  const authToken = "b51181a33d891d7fb60e07404ee1fb7a";
+  const client = twilio(accountSid, authToken);
+
+  client.tokens.create().then((token) => res.send({ token }));
+});
+
+//9-Route middleware
+app.use(RoomRoutes);
 ////////////////// create a peer server////////////////
 const peerServer = ExpressPeerServer(server, {
   debug: true,
@@ -168,18 +193,6 @@ io.on("connection", (socket) => {
     });
   });
 });
-//8-app middleware
-app.use(bodyParser.json());
-app.use(cors());
-
-//9-Route middleware
-app.use(RoomRoutes);
-
-//5-Database connection
-const DB_URL =
-  "mongodb+srv://viduraitexphere:mypass123@web-rtc-app.10ydvu6.mongodb.net/?retryWrites=true&w=majority";
-
-const PORT = process.env.PORT || 5000;
 
 mongoose
   .connect(DB_URL)
